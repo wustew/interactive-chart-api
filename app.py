@@ -18,14 +18,15 @@ def chart():
         ticker = request.args.get("ticker", default="SPY").upper()
         ma_period = int(request.args.get("ma", default=200))
         interval = request.args.get("interval", default="1d")
-        start_date = "2023-01-01"
+        #start_date = "1900-01-01"
 
         # --- Fetch data ---
         try:
-            data = yf.download(ticker, start=start_date, interval=interval, auto_adjust=False)
+            #data = yf.download(ticker, start=start_date, interval=interval, auto_adjust=False)
+            data = yf.download(ticker, period='max', auto_adjust=False)
             # Drop multi-level column index
             data.columns = data.columns.get_level_values(0)
-            data = data[['Close']].dropna()
+            data = data.dropna()
             if data.empty:
                 return f"No data found for {ticker}."
         except Exception as e:
