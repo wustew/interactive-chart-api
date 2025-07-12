@@ -23,6 +23,8 @@ def chart():
         # --- Fetch data ---
         try:
             data = yf.download(ticker, start=start_date, interval=interval, auto_adjust=False)
+            # Drop multi-level column index
+            data.columns = data.columns.get_level_values(0)
             data = data[['Close']].dropna()
             if data.empty:
                 return f"No data found for {ticker}."
