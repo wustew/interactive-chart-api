@@ -2,3 +2,5 @@ flask
 gunicorn
 plotly
 yfinance
+pandas
+tkinter
