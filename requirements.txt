@@ -3,4 +3,3 @@ gunicorn
 plotly
 yfinance
 pandas
-tkinter
