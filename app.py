@@ -42,13 +42,13 @@ def chart():
             rows=2, cols=1,
             shared_xaxes=True,
             row_heights=[0.7, 0.3],
-            subplot_titles=("Ticker", "Normalized Momentum"),
+            subplot_titles=(f"{ticker}", "Normalized Momentum"),
             vertical_spacing=0.1
         )
 
         # Price chart
         fig.add_trace(
-            go.Scatter(x=data.index, y=data['Close'], name="Close", line=dict(color='black', width=2)),
+            go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
             row=1, col=1
         )
         fig.add_trace(
