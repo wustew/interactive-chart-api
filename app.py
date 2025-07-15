@@ -59,12 +59,14 @@ def chart():
             title={
                 'text': f"{ticker} Price and Structural Momentum (Michael Oliver Style)",
                 'font': {
-                    'size': 28,         # ← Font size (adjust as needed)
-                    'family': 'Arial',  # ← Optional font family
-                    'color': 'black',   # ← Optional color
+                    'size': 28,
+                    'family': 'Arial',
+                    'color': 'black',
                 },
-                'x': 0.5,               # ← Center the title (0 = left, 1 = right)
+                'x': 0.5,
                 'xanchor': 'center',
+                'y': 0.9,           # ↓ Lower than default (~0.95)
+                'yanchor': 'top'     # Anchor from the top
             },
             height=800,
             showlegend=True,
