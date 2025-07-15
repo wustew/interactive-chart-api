@@ -39,7 +39,7 @@ def chart():
             rows=2, cols=1,
             shared_xaxes=True,
             row_heights=[0.7, 0.3],
-            subplot_titles=(f"{ticker}", "Normalized Momentum"),
+            subplot_titles=("", "Normalized Momentum"), # f"{ticker}", "Normalized Momentum"
             vertical_spacing=0.1
         )
 
@@ -55,9 +55,17 @@ def chart():
             go.Scatter(x=data.index, y=data['Momentum'], name="Normalized Momentum", line=dict(color='darkred', width=2)),
             row=2, col=1
         )
-
         fig.update_layout(
-            title=f"{ticker} Price and Structural Momentum (Michael Oliver Style)",
+            title={
+                'text': f"{ticker} Price and Structural Momentum (Michael Oliver Style)",
+                'font': {
+                    'size': 28,         # ← Font size (adjust as needed)
+                    'family': 'Arial',  # ← Optional font family
+                    'color': 'black',   # ← Optional color
+                },
+                'x': 0.5,               # ← Center the title (0 = left, 1 = right)
+                'xanchor': 'center',
+            },
             height=800,
             showlegend=True,
             template="plotly_white",
