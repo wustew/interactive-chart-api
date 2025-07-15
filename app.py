@@ -65,7 +65,7 @@ def chart():
                 },
                 'x': 0.5,
                 'xanchor': 'center',
-                'y': 0.9,           # ↓ Lower than default (~0.95)
+                'y': 0.92,           # ↓ Lower than default (~0.95)
                 'yanchor': 'top'     # Anchor from the top
             },
             height=800,
