@@ -18,13 +18,10 @@ def chart():
         ticker = request.args.get("ticker", default="SPY").upper()
         ma_period = int(request.args.get("ma", default=200))
         interval = request.args.get("interval", default="1d")
-        #start_date = "1900-01-01"
 
         # --- Fetch data ---
         try:
-            #data = yf.download(ticker, start=start_date, interval=interval, auto_adjust=False)
             data = yf.download(ticker, period='max', auto_adjust=False)
-            # Drop multi-level column index
             data.columns = data.columns.get_level_values(0)
             data = data.dropna()
             if data.empty:
@@ -46,7 +43,6 @@ def chart():
             vertical_spacing=0.1
         )
 
-        # Price chart
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
             row=1, col=1
@@ -55,8 +51,6 @@ def chart():
             go.Scatter(x=data.index, y=data['MA'], name=f"{ma_period}-Period MA", line=dict(color='blue', width=2, dash='dash')),
             row=1, col=1
         )
-
-        # Momentum chart
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Momentum'], name="Normalized Momentum", line=dict(color='darkred', width=2)),
             row=2, col=1
@@ -75,8 +69,24 @@ def chart():
 
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
-        # Return the figure as a full HTML page
-        html = pio.to_html(fig, full_html=True)
+        # --- Inject custom CSS to enlarge modebar buttons ---
+        custom_css = """
+        <style>
+            .modebar {
+                transform: scale(1.8);
+                transform-origin: top right;
+            }
+            .modebar-btn {
+                padding: 12px !important;
+                margin: 4px !important;
+            }
+        </style>
+        """
+
+        # Inject CSS into HTML head
+        html = pio.to_html(fig, include_plotlyjs='cdn', full_html=True)
+        html = html.replace('</head>', custom_css + '</head>')
+
         return Response(html, mimetype='text/html')
     except Exception as e:
         print(f"Error in /chart: {e}")
