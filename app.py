@@ -21,7 +21,7 @@ def chart():
 
         # --- Fetch data ---
         try:
-            data = yf.download(ticker, period='max', auto_adjust=False)
+            data = yf.download(ticker, period='max', interval=interval, auto_adjust=False)
             data.columns = data.columns.get_level_values(0)
             data = data.dropna()
             if data.empty:
