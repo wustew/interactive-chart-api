@@ -47,10 +47,10 @@ def chart():
             rows=2, cols=1,
             shared_xaxes=True,
             row_heights=[0.7, 0.3],
-            subplot_titles=("", "Normalized Momentum"), # f"{ticker}", "Normalized Momentum"
-            vertical_spacing=0.1
+            subplot_titles=("", "Normalized Momentum and 14-period RSI"), # f"{ticker}", "Normalized Momentum"
+            vertical_spacing=0.1,
+            specs=[[{}], [{"secondary_y": True}]]  # Enable secondary y-axis only for row 2
         )
-
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
             row=1, col=1
@@ -64,8 +64,9 @@ def chart():
             row=2, col=1
         )
         fig.add_trace(
-            go.Scatter(x=data.index, y=data['RSI'], name="14-period RSI", line=dict(color='green', width=2)),
-            row=2, col=1
+            go.Scatter(x=data.index, y=data['RSI'], name="RSI", line=dict(color='green', width=2)),
+            row=2, col=1,
+            secondary_y=True
         )
         fig.update_layout(
             title={
@@ -87,8 +88,10 @@ def chart():
         )
         fig.update_xaxes(title_text="Date", row=2, col=1)
         fig.update_yaxes(title_text="Price", row=1, col=1)
-        fig.update_yaxes(title_text="Normalized Momentum / RSI", row=2, col=1)
-
+        fig.update_yaxes(title_text="Momentum", row=2, col=1, secondary_y=False)
+        fig.update_yaxes(title_text="RSI", row=2, col=1, secondary_y=True)
+        fig.update_yaxes(range=[0, 100], row=2, col=1, secondary_y=True)
+        
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
         # --- Inject custom CSS to enlarge modebar buttons ---
