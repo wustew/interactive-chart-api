@@ -20,37 +20,35 @@ def chart():
         interval = request.args.get("interval", default="1d")
 
         # --- Fetch data ---
-        try:
-            data = yf.download(ticker, period='max', interval=interval, auto_adjust=False)
-            data.columns = data.columns.get_level_values(0)
-            data = data.dropna()
-            if data.empty:
-                return f"No data found for {ticker}."
-        except Exception as e:
-            return f"Error downloading data for {ticker}: {e}"
+        data = yf.download(ticker, period='max', interval=interval, auto_adjust=False)
+        data.columns = data.columns.get_level_values(0)
+        data = data.dropna()
+        if data.empty:
+            return f"No data found for {ticker}."
 
-        # --- Calculate momentum structure ---
+        # --- Calculate Momentum ---
         data['MA'] = data['Close'].rolling(window=ma_period).mean()
         data['Momentum'] = (data['Close'] - data['MA']) / data['MA']
-        
+
         # --- Calculate RSI (14-period) ---
         delta = data['Close'].diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        gain = delta.where(delta > 0, 0).rolling(window=14).mean()
+        loss = -delta.where(delta < 0, 0).rolling(window=14).mean()
         rs = gain / loss
         data['RSI'] = 100 - (100 / (1 + rs))
-        
+
         data = data.dropna()
 
-        # --- Create Plotly chart ---
+        # --- Create Plotly chart with 3 rows ---
         fig = make_subplots(
-            rows=2, cols=1,
+            rows=3, cols=1,
             shared_xaxes=True,
-            row_heights=[0.7, 0.3],
-            subplot_titles=("", "Normalized Momentum and 14-period RSI"), # f"{ticker}", "Normalized Momentum"
-            vertical_spacing=0.1,
-            specs=[[{}], [{"secondary_y": True}]]  # Enable secondary y-axis only for row 2
+            row_heights=[0.6, 0.2, 0.2],
+            vertical_spacing=0.05,
+            subplot_titles=("", "Normalized Momentum", "14-period RSI")
         )
+
+        # --- Row 1: Price & MA ---
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
             row=1, col=1
@@ -59,18 +57,23 @@ def chart():
             go.Scatter(x=data.index, y=data['MA'], name=f"{ma_period}-Period MA", line=dict(color='blue', width=2, dash='dash')),
             row=1, col=1
         )
+
+        # --- Row 2: Momentum ---
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Momentum'], name="Normalized Momentum", line=dict(color='darkred', width=2)),
             row=2, col=1
         )
+
+        # --- Row 3: RSI ---
         fig.add_trace(
-            go.Scatter(x=data.index, y=data['RSI'], name="RSI", line=dict(color='green', width=2)),
-            row=2, col=1,
-            secondary_y=True
+            go.Scatter(x=data.index, y=data['RSI'], name="14-period RSI", line=dict(color='green', width=2)),
+            row=3, col=1
         )
+
+        # --- Layout settings ---
         fig.update_layout(
             title={
-                'text': f"{ticker} Price and Structural Momentum (Michael Oliver Style)",
+                'text': f"{ticker} Price, Structural Momentum (Michael Oliver), RSI",
                 'font': {
                     'size': 28,
                     'family': 'Arial',
@@ -78,20 +81,20 @@ def chart():
                 },
                 'x': 0.5,
                 'xanchor': 'center',
-                'y': 0.92,           # ↓ Lower than default (~0.95)
-                'yanchor': 'top'     # Anchor from the top
+                'y': 0.95,
+                'yanchor': 'top'
             },
-            height=800,
+            height=900,
             showlegend=True,
             template="plotly_white",
             hovermode='x unified'
         )
-        fig.update_xaxes(title_text="Date", row=2, col=1)
+
+        fig.update_xaxes(title_text="Date", row=3, col=1)
         fig.update_yaxes(title_text="Price", row=1, col=1)
-        fig.update_yaxes(title_text="Momentum", row=2, col=1, secondary_y=False)
-        fig.update_yaxes(title_text="RSI", row=2, col=1, secondary_y=True)
-        fig.update_yaxes(range=[0, 100], row=2, col=1, secondary_y=True)
-        
+        fig.update_yaxes(title_text="Momentum", row=2, col=1)
+        fig.update_yaxes(title_text="RSI", row=3, col=1, range=[0, 100])
+
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
         # --- Inject custom CSS to enlarge modebar buttons ---
