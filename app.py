@@ -32,6 +32,14 @@ def chart():
         # --- Calculate momentum structure ---
         data['MA'] = data['Close'].rolling(window=ma_period).mean()
         data['Momentum'] = (data['Close'] - data['MA']) / data['MA']
+        
+        # --- Calculate RSI (14-period) ---
+        delta = data['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        data['RSI'] = 100 - (100 / (1 + rs))
+        
         data = data.dropna()
 
         # --- Create Plotly chart ---
@@ -55,6 +63,10 @@ def chart():
             go.Scatter(x=data.index, y=data['Momentum'], name="Normalized Momentum", line=dict(color='darkred', width=2)),
             row=2, col=1
         )
+        fig.add_trace(
+            go.Scatter(x=data.index, y=data['RSI'], name="14-period RSI", line=dict(color='green', width=2)),
+            row=2, col=1
+        )
         fig.update_layout(
             title={
                 'text': f"{ticker} Price and Structural Momentum (Michael Oliver Style)",
@@ -75,7 +87,7 @@ def chart():
         )
         fig.update_xaxes(title_text="Date", row=2, col=1)
         fig.update_yaxes(title_text="Price", row=1, col=1)
-        fig.update_yaxes(title_text="Normalized Momentum", row=2, col=1)
+        fig.update_yaxes(title_text="Normalized Momentum / RSI", row=2, col=1)
 
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
