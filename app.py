@@ -84,7 +84,8 @@ def chart():
                 'y': 0.95,
                 'yanchor': 'top'
             },
-            height=900,
+            autosize=True,
+            height=None,
             showlegend=True,
             template="plotly_white",
             hovermode='x unified'
@@ -100,6 +101,11 @@ def chart():
         # --- Inject custom CSS to enlarge modebar buttons ---
         custom_css = """
         <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
             .modebar {
                 transform: scale(1.8);
                 transform-origin: top right;
@@ -108,11 +114,14 @@ def chart():
                 padding: 12px !important;
                 margin: 4px !important;
             }
+            .plot-container {
+                height: 100vh !important;
+            }
         </style>
         """
 
         # Inject CSS into HTML head
-        html = pio.to_html(fig, include_plotlyjs='cdn', full_html=True)
+        html = pio.to_html(fig, include_plotlyjs='cdn', full_html=True, default_height='100%', default_width='100%')
         html = html.replace('</head>', custom_css + '</head>')
 
         return Response(html, mimetype='text/html')
