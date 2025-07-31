@@ -47,7 +47,13 @@ def chart():
             vertical_spacing=0.05,
             subplot_titles=("", "Normalized Momentum", "14-period RSI")
         )
-
+        
+        # Update subplot title formatting
+        fig.update_annotations(
+            font_size=16,  # Increase font size
+            font_weight="bold"  # Make bold (or use font_weight="bold" in newer versions)
+        )
+        
         # --- Row 1: Price & MA ---
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
