@@ -45,12 +45,12 @@ def chart():
             shared_xaxes=True,
             row_heights=[0.6, 0.2, 0.2],
             vertical_spacing=0.05,
-            subplot_titles=("", "Normalized Momentum", "14-period RSI")
+            subplot_titles=("", "Normalized Momentum", "RSI (14-period)")
         )
         
         # Update subplot title formatting
         fig.update_annotations(
-            font_size=16,  # Increase font size
+            font_size=20,  # Increase font size
             font_weight="bold"  # Make bold (or use font_weight="bold" in newer versions)
         )
         
