@@ -1,3 +1,8 @@
+'''
+Structural Momentum (ChatGPT interpretation of Michael Oliver's approach)
+Updated on 2025-07-22
+'''
+
 from flask import Flask, request, Response
 import yfinance as yf
 import pandas as pd
@@ -21,6 +26,7 @@ def chart():
 
         # --- Fetch data ---
         data = yf.download(ticker, period='max', interval=interval, auto_adjust=False)
+        tickername = yf.Ticker(ticker).info['shortName']
         data.columns = data.columns.get_level_values(0)
         data = data.dropna()
         if data.empty:
@@ -79,7 +85,7 @@ def chart():
         # --- Layout settings ---
         fig.update_layout(
             title={
-                'text': f"{ticker} Price, Structural Momentum (Michael Oliver), RSI",
+                'text': f"{ticker} (tickername)",
                 'font': {
                     'size': 28,
                     'family': 'Arial',
