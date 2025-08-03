@@ -85,7 +85,7 @@ def chart():
         # --- Layout settings ---
         fig.update_layout(
             title={
-                'text': f"{ticker} (tickername)",
+                'text': f"{ticker} ({tickername})",
                 'font': {
                     'size': 28,
                     'family': 'Arial',
