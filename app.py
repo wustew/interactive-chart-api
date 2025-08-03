@@ -56,7 +56,7 @@ def chart():
         
         # Update subplot title formatting
         fig.update_annotations(
-            font_size=20,  # Increase font size
+            font_size=24,  # Increase font size
             font_weight="bold"  # Make bold (or use font_weight="bold" in newer versions)
         )
         
@@ -85,11 +85,10 @@ def chart():
         # --- Layout settings ---
         fig.update_layout(
             title={
-                'text': f"{ticker} ({tickername})",
+                'text': f"<b>{ticker} ({tickername})</b>",
                 'font': {
-                    'size': 28,
-                    'family': 'Arial',
-                    'color': 'black',
+                    'size': 36,
+                    'color': 'black'
                 },
                 'x': 0.5,
                 'xanchor': 'center',
