@@ -42,6 +42,7 @@ def chart():
         loss = -delta.where(delta < 0, 0).rolling(window=14).mean()
         rs = gain / loss
         data['RSI'] = 100 - (100 / (1 + rs))
+
         data = data.dropna()
 
         # --- Create Plotly chart with 3 rows ---
@@ -52,7 +53,7 @@ def chart():
             vertical_spacing=0.05,
             subplot_titles=("", "Normalized Momentum", "RSI (14-period)")
         )
-
+        
         # Update subplot title formatting
         fig.update_annotations(
             font=dict(
@@ -61,7 +62,7 @@ def chart():
                 weight='bold'
             )
         )
-
+        
         # --- Row 1: Price & MA ---
         fig.add_trace(
             go.Scatter(x=data.index, y=data['Close'], name=f"{ticker} Close", line=dict(color='black', width=2)),
@@ -102,25 +103,18 @@ def chart():
             showlegend=True,
             template="plotly_white",
             hovermode='x unified',
-            dragmode='zoom',
-            uirevision=True,
             legend=dict(
                 x=1.02,
-                y=0.75,
+                y=0.75,          # Center-right of top subplot
                 xanchor='left',
                 yanchor='middle',
                 font=dict(size=16),
                 bgcolor='rgba(255,255,255,0)',
                 bordercolor='black',
                 borderwidth=0
-            ),
-            xaxis=dict(rangeslider=dict(visible=False), fixedrange=False),
-            yaxis=dict(fixedrange=False),
-            yaxis2=dict(fixedrange=False),
-            yaxis3=dict(fixedrange=False)
+            )
         )
 
-        # Axis labels
         fig.update_xaxes(title_text="Date", row=3, col=1)
         fig.update_yaxes(title_text="Price", row=1, col=1)
         fig.update_yaxes(title_text="Momentum", row=2, col=1)
@@ -128,15 +122,13 @@ def chart():
 
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
-        # --- Inject custom meta and CSS for pinch zoom and full height ---
-        custom_head = """
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+        # --- Inject custom CSS to enlarge modebar buttons ---
+        custom_css = """
         <style>
             html, body {
                 margin: 0;
                 padding: 0;
                 height: 100%;
-                touch-action: manipulation;
             }
             .modebar {
                 transform: scale(1.8);
@@ -152,9 +144,9 @@ def chart():
         </style>
         """
 
-        # Inject into HTML head
+        # Inject CSS into HTML head
         html = pio.to_html(fig, include_plotlyjs='cdn', full_html=True, default_height='100%', default_width='100%')
-        html = html.replace('</head>', custom_head + '</head>')
+        html = html.replace('</head>', custom_css + '</head>')
 
         return Response(html, mimetype='text/html')
     except Exception as e:
