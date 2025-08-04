@@ -59,7 +59,7 @@ def chart():
             font=dict(
                 size=24,
                 color='black',
-                font_weight="bold"
+                weight='bold'
             )
         )
         
