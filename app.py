@@ -99,7 +99,17 @@ def chart():
             height=None,
             showlegend=True,
             template="plotly_white",
-            hovermode='x unified'
+            hovermode='x unified',
+            legend=dict(
+                x=1.02,
+                y=0.75,          # Center-right of top subplot
+                xanchor='left',
+                yanchor='middle',
+                font=dict(size=16),
+                bgcolor='rgba(255,255,255,0)',
+                bordercolor='black',
+                borderwidth=0
+            )
         )
 
         fig.update_xaxes(title_text="Date", row=3, col=1)
