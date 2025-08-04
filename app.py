@@ -56,8 +56,11 @@ def chart():
         
         # Update subplot title formatting
         fig.update_annotations(
-            font_size=24,  # Increase font size
-            font_weight="bold"  # Make bold (or use font_weight="bold" in newer versions)
+            font=dict(
+                size=24,
+                color='black',
+                font_weight="bold"
+            )
         )
         
         # --- Row 1: Price & MA ---
