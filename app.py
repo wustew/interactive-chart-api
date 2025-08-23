@@ -1,6 +1,6 @@
 '''
 Structural Momentum (ChatGPT interpretation of Michael Oliver's approach)
-Updated on 2025-07-22
+Updated on 2025-08-22
 '''
 
 from flask import Flask, request, Response, render_template_string
@@ -335,8 +335,11 @@ HTML_TEMPLATE = """
             
             // Show chart when loaded
             iframe.onload = function() {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('chartContainer').style.display = 'block';
+                // Only show chart if we're not in the process of hiding it
+                if (iframe.src && iframe.src !== 'about:blank' && iframe.src !== '') {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('chartContainer').style.display = 'block';
+                }
             };
             
             // Handle iframe load errors
@@ -348,9 +351,18 @@ HTML_TEMPLATE = """
         });
         
         function hideChart() {
+            // Remove the onload event handler to prevent retriggering
+            document.getElementById('chartFrame').onload = null;
+            document.getElementById('chartFrame').onerror = null;
+            
+            // Hide chart and show form
             document.getElementById('chartContainer').style.display = 'none';
             document.querySelector('.container').style.display = 'block';
-            document.getElementById('chartFrame').src = '';
+            
+            // Clear iframe src after a small delay to prevent flickering
+            setTimeout(() => {
+                document.getElementById('chartFrame').src = 'about:blank';
+            }, 100);
         }
         
         // Auto-convert ticker to uppercase as user types
