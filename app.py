@@ -487,21 +487,21 @@ def chart():
             template="plotly_white",
             hovermode='x unified',
             legend=dict(
-                x=1.02 if not is_mobile else 0.01,
-                y=0.75 if not is_mobile else 0.85,
-                xanchor='left' if not is_mobile else 'left',
+                x=1.02 if not is_mobile else 0.5,
+                y=0.75 if not is_mobile else -0.25,
+                xanchor='left' if not is_mobile else 'center',
                 yanchor='middle' if not is_mobile else 'top',
                 font=dict(size=legend_size),
-                bgcolor='rgba(255,255,255,0.9)' if is_mobile else 'rgba(255,255,255,0)',
+                bgcolor='rgba(255,255,255,0.95)' if is_mobile else 'rgba(255,255,255,0)',
                 bordercolor='gray' if is_mobile else 'black',
                 borderwidth=1 if is_mobile else 0,
-                orientation='v'
+                orientation='h' if is_mobile else 'v'
             ),
             margin=dict(
-                t=120 if is_mobile else 100,  # More top margin for wrapped title
+                t=120 if is_mobile else 100,
                 l=40,
                 r=40,
-                b=60
+                b=120 if is_mobile else 60  # Extra bottom margin for legend space
             )
         )
 
@@ -530,7 +530,11 @@ def chart():
                 margin: 2px !important;
             }
             .plot-container {
-                height: 100vh !important;
+                height: 120vh !important;  /* Taller to allow scrolling */
+                min-height: 120vh !important;
+            }
+            .js-plotly-plot {
+                height: 120vh !important;
             }
             @media (max-width: 768px) {
                 .modebar {
@@ -542,6 +546,9 @@ def chart():
                 }
                 .main-svg {
                     overflow: visible !important;
+                }
+                body {
+                    overflow-y: auto !important;  /* Enable vertical scrolling */
                 }
             }
         </style>
