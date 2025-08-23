@@ -1,6 +1,6 @@
 '''
 Structural Momentum (ChatGPT interpretation of Michael Oliver's approach)
-Updated on 2025-07-22
+Updated on 2025-08-22
 '''
 
 from flask import Flask, request, Response, render_template_string
@@ -419,6 +419,15 @@ def chart():
 
         data = data.dropna()
 
+        # Detect if it's a mobile request and set font sizes
+        user_agent = request.headers.get('User-Agent', '').lower()
+        is_mobile = any(x in user_agent for x in ['mobile', 'iphone', 'ipad', 'android'])
+        
+        # Adjust font sizes for mobile
+        title_size = 24 if is_mobile else 36
+        subtitle_size = 16 if is_mobile else 24
+        legend_size = 12 if is_mobile else 16
+
         # --- Create Plotly chart with 3 rows ---
         fig = make_subplots(
             rows=3, cols=1,
@@ -459,16 +468,7 @@ def chart():
             row=3, col=1
         )
 
-        # --- Layout settings ---
-        # Detect if it's a mobile request (simple detection)
-        user_agent = request.headers.get('User-Agent', '').lower()
-        is_mobile = any(x in user_agent for x in ['mobile', 'iphone', 'ipad', 'android'])
-        
-        # Adjust font sizes for mobile
-        title_size = 24 if is_mobile else 36
-        subtitle_size = 16 if is_mobile else 24
-        legend_size = 12 if is_mobile else 16
-        
+        # --- Layout settings ---        
         fig.update_layout(
             title={
                 'text': f"<b>{ticker} ({tickername})</b>",
