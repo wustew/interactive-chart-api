@@ -432,8 +432,8 @@ def chart():
         fig = make_subplots(
             rows=3, cols=1,
             shared_xaxes=True,
-            row_heights=[0.6, 0.2, 0.2],
-            vertical_spacing=0.05,
+            row_heights=[0.55, 0.225, 0.225] if is_mobile else [0.6, 0.2, 0.2],
+            vertical_spacing=0.08 if is_mobile else 0.05,
             subplot_titles=("", "Normalized Momentum", "RSI (14-period)")
         )
         
@@ -471,14 +471,14 @@ def chart():
         # --- Layout settings ---        
         fig.update_layout(
             title={
-                'text': f"<b>{ticker} ({tickername})</b>",
+                'text': f"<b>{ticker}</b><br><span style='font-size:{int(title_size*0.7)}px'>{tickername}</span>" if is_mobile else f"<b>{ticker} ({tickername})</b>",
                 'font': {
                     'size': title_size,
                     'color': 'black'
                 },
                 'x': 0.5,
                 'xanchor': 'center',
-                'y': 0.95,
+                'y': 0.98 if is_mobile else 0.95,
                 'yanchor': 'top'
             },
             autosize=True,
@@ -487,15 +487,21 @@ def chart():
             template="plotly_white",
             hovermode='x unified',
             legend=dict(
-                x=1.02 if not is_mobile else 0.5,
-                y=0.75 if not is_mobile else -0.15,
-                xanchor='left' if not is_mobile else 'center',
+                x=1.02 if not is_mobile else 0.01,
+                y=0.75 if not is_mobile else 0.85,
+                xanchor='left' if not is_mobile else 'left',
                 yanchor='middle' if not is_mobile else 'top',
                 font=dict(size=legend_size),
-                bgcolor='rgba(255,255,255,0)',
-                bordercolor='black',
-                borderwidth=0,
-                orientation='v' if not is_mobile else 'h'
+                bgcolor='rgba(255,255,255,0.9)' if is_mobile else 'rgba(255,255,255,0)',
+                bordercolor='gray' if is_mobile else 'black',
+                borderwidth=1 if is_mobile else 0,
+                orientation='v'
+            ),
+            margin=dict(
+                t=120 if is_mobile else 100,  # More top margin for wrapped title
+                l=40,
+                r=40,
+                b=60
             )
         )
 
