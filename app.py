@@ -478,7 +478,7 @@ def chart():
                 },
                 'x': 0.5,
                 'xanchor': 'center',
-                'y': 0.98 if is_mobile else 0.95,
+                'y': 0.92 if is_mobile else 0.95,  # Moved down on mobile to avoid toolbar
                 'yanchor': 'top'
             },
             autosize=True,
