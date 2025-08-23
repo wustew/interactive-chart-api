@@ -471,7 +471,7 @@ def chart():
         # --- Layout settings ---        
         fig.update_layout(
             title={
-                'text': f"<b>{ticker}</b><br><span style='font-size:{int(title_size*0.7)}px'>{tickername}</span>" if is_mobile else f"<b>{ticker} ({tickername})</b>",
+                'text': f"<b>{tickername}</b>" if is_mobile else f"<b>{ticker} ({tickername})</b>",
                 'font': {
                     'size': title_size,
                     'color': 'black'
@@ -488,7 +488,7 @@ def chart():
             hovermode='x unified',
             legend=dict(
                 x=1.02 if not is_mobile else 0.5,
-                y=0.75 if not is_mobile else -0.25,
+                y=0.75 if not is_mobile else -0.15,  # Moved legend up from -0.25 to -0.15
                 xanchor='left' if not is_mobile else 'center',
                 yanchor='middle' if not is_mobile else 'top',
                 font=dict(size=legend_size),
@@ -501,7 +501,7 @@ def chart():
                 t=120 if is_mobile else 100,
                 l=40,
                 r=40,
-                b=160 if is_mobile else 60  # More bottom margin for extra space below legend
+                b=200 if is_mobile else 60  # Increased bottom margin even more
             )
         )
 
