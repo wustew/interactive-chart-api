@@ -1,6 +1,6 @@
 '''
 Structural Momentum (ChatGPT interpretation of Michael Oliver's approach)
-Updated on 2025-08-22
+Updated on 2025-07-22
 '''
 
 from flask import Flask, request, Response, render_template_string
@@ -257,18 +257,18 @@ HTML_TEMPLATE = """
 
             <div class="form-group">
                 <label for="ma">Moving Average Period</label>
-                <input type="number" id="ma" name="ma" value="200" min="1" max="500" required>
+                <input type="number" id="ma" name="ma" value="36" min="1" max="500" required>
             </div>
 
             <div class="form-group">
                 <label>Time Interval</label>
                 <div class="interval-group">
                     <div class="interval-option">
-                        <input type="radio" id="interval_1d" name="interval" value="1d" checked>
+                        <input type="radio" id="interval_1d" name="interval" value="1d">
                         <label for="interval_1d">Daily</label>
                     </div>
                     <div class="interval-option">
-                        <input type="radio" id="interval_1wk" name="interval" value="1wk">
+                        <input type="radio" id="interval_1wk" name="interval" value="1wk" checked>
                         <label for="interval_1wk">Weekly</label>
                     </div>
                     <div class="interval-option">
@@ -431,7 +431,7 @@ def chart():
         # Update subplot title formatting
         fig.update_annotations(
             font=dict(
-                size=24,
+                size=subtitle_size,
                 color='black',
                 weight='bold'
             )
@@ -460,11 +460,20 @@ def chart():
         )
 
         # --- Layout settings ---
+        # Detect if it's a mobile request (simple detection)
+        user_agent = request.headers.get('User-Agent', '').lower()
+        is_mobile = any(x in user_agent for x in ['mobile', 'iphone', 'ipad', 'android'])
+        
+        # Adjust font sizes for mobile
+        title_size = 24 if is_mobile else 36
+        subtitle_size = 16 if is_mobile else 24
+        legend_size = 12 if is_mobile else 16
+        
         fig.update_layout(
             title={
                 'text': f"<b>{ticker} ({tickername})</b>",
                 'font': {
-                    'size': 36,
+                    'size': title_size,
                     'color': 'black'
                 },
                 'x': 0.5,
@@ -478,26 +487,59 @@ def chart():
             template="plotly_white",
             hovermode='x unified',
             legend=dict(
-                x=1.02,
-                y=0.75,          # Center-right of top subplot
-                xanchor='left',
-                yanchor='middle',
-                font=dict(size=16),
+                x=1.02 if not is_mobile else 0.5,
+                y=0.75 if not is_mobile else -0.15,
+                xanchor='left' if not is_mobile else 'center',
+                yanchor='middle' if not is_mobile else 'top',
+                font=dict(size=legend_size),
                 bgcolor='rgba(255,255,255,0)',
                 bordercolor='black',
-                borderwidth=0
+                borderwidth=0,
+                orientation='v' if not is_mobile else 'h'
             )
         )
 
-        fig.update_xaxes(title_text="Date", row=3, col=1)
-        fig.update_yaxes(title_text="Price", row=1, col=1)
-        fig.update_yaxes(title_text="Momentum", row=2, col=1)
-        fig.update_yaxes(title_text="RSI", row=3, col=1, range=[0, 100])
+        fig.update_xaxes(title_text="Date", row=3, col=1, title_font_size=12 if is_mobile else 14)
+        fig.update_yaxes(title_text="Price", row=1, col=1, title_font_size=12 if is_mobile else 14)
+        fig.update_yaxes(title_text="Momentum", row=2, col=1, title_font_size=12 if is_mobile else 14)
+        fig.update_yaxes(title_text="RSI", row=3, col=1, range=[0, 100], title_font_size=12 if is_mobile else 14)
 
         print(f"Processing ticker={ticker}, ma={ma_period}, interval={interval}")
 
-        # --- Inject custom CSS to enlarge modebar buttons ---
-        custom_css = """
+        # --- Inject custom CSS to enlarge modebar buttons and optimize for mobile ---
+        mobile_css = """
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow-x: hidden;
+            }
+            .modebar {
+                transform: scale(1.4);
+                transform-origin: top right;
+            }
+            .modebar-btn {
+                padding: 8px !important;
+                margin: 2px !important;
+            }
+            .plot-container {
+                height: 100vh !important;
+            }
+            @media (max-width: 768px) {
+                .modebar {
+                    transform: scale(1.2);
+                }
+                .js-plotly-plot .plotly .modebar {
+                    left: 10px !important;
+                    right: auto !important;
+                }
+                .main-svg {
+                    overflow: visible !important;
+                }
+            }
+        </style>
+        """ if is_mobile else """
         <style>
             html, body {
                 margin: 0;
@@ -520,7 +562,7 @@ def chart():
 
         # Inject CSS into HTML head
         html = pio.to_html(fig, include_plotlyjs='cdn', full_html=True, default_height='100%', default_width='100%')
-        html = html.replace('</head>', custom_css + '</head>')
+        html = html.replace('</head>', mobile_css + '</head>')
 
         return Response(html, mimetype='text/html')
     except Exception as e:
