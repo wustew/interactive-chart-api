@@ -296,6 +296,8 @@ HTML_TEMPLATE = """
     </div>
 
     <script>
+        let isChartVisible = false;
+        
         document.getElementById('chartForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -326,43 +328,53 @@ HTML_TEMPLATE = """
             const baseUrl = window.location.origin;
             const chartUrl = `${baseUrl}/chart?ticker=${encodeURIComponent(ticker)}&ma=${encodeURIComponent(ma)}&interval=${encodeURIComponent(interval)}`;
             
-            // Load chart in iframe
-            const iframe = document.getElementById('chartFrame');
-            iframe.src = chartUrl;
-            
             // Update chart title
             document.getElementById('chartTitle').textContent = `${ticker} - ${ma}MA - ${interval.toUpperCase()}`;
             
-            // Show chart when loaded
+            // Load chart in iframe
+            const iframe = document.getElementById('chartFrame');
+            
+            // Safari-compatible iframe loading
             iframe.onload = function() {
-                // Only show chart if we're not in the process of hiding it
-                if (iframe.src && iframe.src !== 'about:blank' && iframe.src !== '') {
+                if (!isChartVisible && iframe.src && iframe.src.includes('/chart')) {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('chartContainer').style.display = 'block';
+                    isChartVisible = true;
                 }
             };
             
             // Handle iframe load errors
             iframe.onerror = function() {
-                document.getElementById('loading').style.display = 'none';
-                document.querySelector('.container').style.display = 'block';
-                alert('Error loading chart. Please check the ticker symbol and try again.');
+                if (!isChartVisible) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.querySelector('.container').style.display = 'block';
+                    alert('Error loading chart. Please check the ticker symbol and try again.');
+                }
             };
+            
+            // Set the src after setting up event handlers
+            iframe.src = chartUrl;
         });
         
         function hideChart() {
-            // Remove the onload event handler to prevent retriggering
-            document.getElementById('chartFrame').onload = null;
-            document.getElementById('chartFrame').onerror = null;
+            // Set flag to prevent chart from showing again
+            isChartVisible = false;
             
-            // Hide chart and show form
+            // Clear event handlers
+            const iframe = document.getElementById('chartFrame');
+            iframe.onload = null;
+            iframe.onerror = null;
+            
+            // Hide chart and show form immediately
             document.getElementById('chartContainer').style.display = 'none';
             document.querySelector('.container').style.display = 'block';
             
-            // Clear iframe src after a small delay to prevent flickering
+            // Clear iframe after state change to prevent Safari issues
             setTimeout(() => {
-                document.getElementById('chartFrame').src = 'about:blank';
-            }, 100);
+                if (!isChartVisible) {
+                    iframe.src = '';
+                }
+            }, 50);
         }
         
         // Auto-convert ticker to uppercase as user types
