@@ -501,7 +501,7 @@ def chart():
                 t=120 if is_mobile else 100,
                 l=40,
                 r=40,
-                b=120 if is_mobile else 60  # Extra bottom margin for legend space
+                b=160 if is_mobile else 60  # More bottom margin for extra space below legend
             )
         )
 
@@ -530,11 +530,11 @@ def chart():
                 margin: 2px !important;
             }
             .plot-container {
-                height: 120vh !important;  /* Taller to allow scrolling */
-                min-height: 120vh !important;
+                height: 130vh !important;  /* Even taller for more bottom space */
+                min-height: 130vh !important;
             }
             .js-plotly-plot {
-                height: 120vh !important;
+                height: 130vh !important;
             }
             @media (max-width: 768px) {
                 .modebar {
