@@ -3,7 +3,7 @@ Structural Momentum (ChatGPT interpretation of Michael Oliver's approach)
 Updated on 2025-07-22
 '''
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template_string
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
@@ -12,9 +12,359 @@ import plotly.io as pio
 
 app = Flask(__name__)
 
+# HTML template for the form
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Chart Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 1.1em;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .interval-group {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+
+        .interval-option {
+            flex: 1;
+            position: relative;
+        }
+
+        .interval-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .interval-option label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .interval-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .interval-option label:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a67d8, #6b46a3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+        }
+
+        .chart-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .chart-frame {
+            width: 100%;
+            height: calc(100% - 60px);
+            border: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .interval-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Stock Analyzer</h1>
+        <p class="subtitle">Structural Momentum & Technical Analysis</p>
+        
+        <form id="chartForm">
+            <div class="form-group">
+                <label for="ticker">Stock Ticker Symbol</label>
+                <input type="text" id="ticker" name="ticker" placeholder="e.g., SPY, AAPL, TSLA" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ma">Moving Average Period</label>
+                <input type="number" id="ma" name="ma" value="200" min="1" max="500" required>
+            </div>
+
+            <div class="form-group">
+                <label>Time Interval</label>
+                <div class="interval-group">
+                    <div class="interval-option">
+                        <input type="radio" id="interval_1d" name="interval" value="1d" checked>
+                        <label for="interval_1d">Daily</label>
+                    </div>
+                    <div class="interval-option">
+                        <input type="radio" id="interval_1wk" name="interval" value="1wk">
+                        <label for="interval_1wk">Weekly</label>
+                    </div>
+                    <div class="interval-option">
+                        <input type="radio" id="interval_1mo" name="interval" value="1mo">
+                        <label for="interval_1mo">Monthly</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Generate Chart</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your chart...</p>
+        </div>
+    </div>
+
+    <div class="chart-container" id="chartContainer">
+        <div class="chart-header">
+            <h2 id="chartTitle">Stock Chart</h2>
+            <button class="back-btn" onclick="hideChart()">← Back to Form</button>
+        </div>
+        <iframe id="chartFrame" class="chart-frame"></iframe>
+    </div>
+
+    <script>
+        document.getElementById('chartForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+            const ma = document.getElementById('ma').value;
+            const interval = document.querySelector('input[name="interval"]:checked').value;
+            
+            // Validate inputs
+            if (!ticker) {
+                alert('Please enter a ticker symbol');
+                return;
+            }
+            
+            if (!ma || ma < 1) {
+                alert('Please enter a valid moving average period');
+                return;
+            }
+
+            // Update ticker input to show uppercase
+            document.getElementById('ticker').value = ticker;
+            
+            // Show loading
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            // Build URL for your Flask backend
+            const baseUrl = window.location.origin;
+            const chartUrl = `${baseUrl}/chart?ticker=${encodeURIComponent(ticker)}&ma=${encodeURIComponent(ma)}&interval=${encodeURIComponent(interval)}`;
+            
+            // Load chart in iframe
+            const iframe = document.getElementById('chartFrame');
+            iframe.src = chartUrl;
+            
+            // Update chart title
+            document.getElementById('chartTitle').textContent = `${ticker} - ${ma}MA - ${interval.toUpperCase()}`;
+            
+            // Show chart when loaded
+            iframe.onload = function() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('chartContainer').style.display = 'block';
+            };
+            
+            // Handle iframe load errors
+            iframe.onerror = function() {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.container').style.display = 'block';
+                alert('Error loading chart. Please check the ticker symbol and try again.');
+            };
+        });
+        
+        function hideChart() {
+            document.getElementById('chartContainer').style.display = 'none';
+            document.querySelector('.container').style.display = 'block';
+            document.getElementById('chartFrame').src = '';
+        }
+        
+        // Auto-convert ticker to uppercase as user types
+        document.getElementById('ticker').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>
+"""
+
 @app.route("/")
 def home():
-    return "Backend is working! Visit /chart?ticker=SPY&ma=200&interval=1d"
+    return render_template_string(HTML_TEMPLATE)
 
 @app.route("/chart")
 def chart():
@@ -152,3 +502,6 @@ def chart():
     except Exception as e:
         print(f"Error in /chart: {e}")
         return f"Error: {e}"
+
+if __name__ == '__main__':
+    app.run(debug=True)
