@@ -428,6 +428,31 @@ def chart():
         subtitle_size = 16 if is_mobile else 24
         legend_size = 12 if is_mobile else 16
 
+        # Helper function to wrap long text for mobile
+        def wrap_text_for_mobile(text, max_length=25):
+            if len(text) <= max_length:
+                return text
+            # Find a good place to break (prefer spaces)
+            words = text.split()
+            lines = []
+            current_line = ""
+            
+            for word in words:
+                if len(current_line + " " + word) <= max_length:
+                    current_line += (" " + word) if current_line else word
+                else:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word
+            
+            if current_line:
+                lines.append(current_line)
+            
+            return "<br>".join(lines)
+
+        # Format title for mobile vs desktop
+        mobile_title = wrap_text_for_mobile(tickername) if is_mobile else tickername
+
         # --- Create Plotly chart with 3 rows ---
         fig = make_subplots(
             rows=3, cols=1,
@@ -471,7 +496,7 @@ def chart():
         # --- Layout settings ---        
         fig.update_layout(
             title={
-                'text': f"<b>{tickername}</b>" if is_mobile else f"<b>{ticker} ({tickername})</b>",
+                'text': f"<b>{mobile_title}</b>" if is_mobile else f"<b>{ticker} ({tickername})</b>",
                 'font': {
                     'size': title_size,
                     'color': 'black'
